@@ -1,0 +1,64 @@
+.all {
+  direction: rtl;
+}
+.header {
+  background-image: url("./images/logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 90px;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: rtl;
+  margin-bottom: 2%;
+}
+.btnCon {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+.but {
+  color: darkblue;
+  font-size: 20px;
+  height: 35px;
+}
+.enter {
+  position: absolute;
+  bottom: 0;
+  left: 30%;
+  transform: translate(-100%, 100%);
+}
+
+.add {
+  display: block;
+  margin-right: 0 auto;
+}
+.inp {
+  margin: 5px;
+  font-size: 20px;
+  height: 35px;
+}
+.headLink {
+  color: darkblue;
+  font-size: 20px;
+  text-decoration: none;
+  margin-right: 10%;
+  margin-bottom: 5%;
+}
+.home {
+  color: black;
+  position: relative;
+  font-size: 70px;
+  font-style: italic;
+  text-align: center;
+}
+.form {
+  position: absolute;
+  left: 45%;
+  align-items: left;
+}
+.menu {
+  margin-bottom: 5%;
+}

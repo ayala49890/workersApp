@@ -1,0 +1,20 @@
+.entry {
+  background-image: url("./images/logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 120px;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: rtl;
+margin-bottom: 5%;}
+.firstPage{
+  text-align: center;
+}
+.myLink{
+  font-size: 30px;
+color: midnightblue;
+
+}
