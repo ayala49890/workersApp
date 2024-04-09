@@ -5,4 +5,5 @@ export const SET_SELECTED_WORKER = "SET_SELECTED_WORKER";
 export const ADD_WORKER = "ADD_WORKER";
 export const DELETE_ROLE = "DELETE_ROLE";
 export const SET_ROLES = "SET_ROLES";
+// export const SET_WORKER_ROLES = "SET_WORKER_ROLES";
 export const ADD_ROLE = "ADD_ROLE";

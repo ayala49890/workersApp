@@ -1,11 +1,10 @@
 import axios from "axios";
-import { useDispatch } from "react-redux";
 import Swal from "sweetalert2";
 
 export const getRoles = () => {
   return (dispatch) => {
     axios
-      .get("https://localhost:7281/api/Roles")
+      .get("https://localhost:7281/workers.co.il/Roles")
       .then((res) => {
         dispatch({ type: "SET_ROLES", payload: res.data });
       })
@@ -16,7 +15,7 @@ export const getRoles = () => {
 export const deleteRole = (roleId) => {
   return (dispatch) => {
     axios
-      .delete(`https://localhost:7281/api/Roles/${roleId}`)
+      .delete(`https://localhost:7281/workers.co.il/Roles/${roleId}`)
       .then(() => {
         dispatch({ type: "DELETE_ROLE", payload: roleId });
         Swal.fire({
@@ -33,7 +32,7 @@ export const deleteRole = (roleId) => {
 export const addRole = (role) => {
   return (dispatch) => {
     axios
-      .post("https://localhost:7281/api/Roles", role)
+      .post("https://localhost:7281/workers.co.il/Roles", role)
       .then((res) => {
         dispatch({ type: "ADD_ROLE", payload: res.data });
         Swal.fire({
@@ -47,5 +46,3 @@ export const addRole = (role) => {
       });
   };
 };
-
-

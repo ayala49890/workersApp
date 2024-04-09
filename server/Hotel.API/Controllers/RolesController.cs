@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Hotel.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("workers.co.il/[controller]")]
     [ApiController]
     public class RolesController : ControllerBase
     {

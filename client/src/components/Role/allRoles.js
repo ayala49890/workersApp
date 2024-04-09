@@ -15,6 +15,7 @@ export default function AllRoles() {
   const roles = useSelector((state) => state.roles.roles);
   const [columns, setColumns] = useState([]);
   const navigate = useNavigate();
+  dispatch({ type: "SET_SELECTED_WORKER", payload: null });
 
   useEffect(() => {
     dispatch(getRoles());
@@ -42,27 +43,29 @@ export default function AllRoles() {
 
     const roleFields = Object.keys(roles[0]);
 
-    const columns = roleFields.map((field) => {
-      if (field === "id" || field === "מזהה") {
-        return null;
-      }
-      
-      return {
-        field: field,
-        headerName: translateField(field),
-        width: 130,
-        headerAlign: "center",
-        align: "center",
-        headerClassName: "header-class",
-        footerClassName: "footer-class",
-        headerComponent: () => (
-          <div className="header-component">{translateField(field)}</div>
-        ),
-        footerComponent: () => (
-          <div className="footer-component">{translateField(field)}</div>
-        ),
-      };
-    }).filter(column => column !== null);
+    const columns = roleFields
+      .map((field) => {
+        if (field === "id" || field === "מזהה") {
+          return null;
+        }
+
+        return {
+          field: field,
+          headerName: translateField(field),
+          width: 130,
+          headerAlign: "center",
+          align: "center",
+          headerClassName: "header-class",
+          footerClassName: "footer-class",
+          headerComponent: () => (
+            <div className="header-component">{translateField(field)}</div>
+          ),
+          footerComponent: () => (
+            <div className="footer-component">{translateField(field)}</div>
+          ),
+        };
+      })
+      .filter((column) => column !== null);
 
     columns.push({
       field: "actions",

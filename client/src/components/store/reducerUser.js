@@ -1,21 +1,17 @@
-
-import * as actionType from './action'
+import * as actionType from "./action";
 
 const initialState = {
-    user:null
-}
+  user: null,
+};
 
 export default function ReducerUser(state = initialState, action) {
-    switch (action.type) {
-       
-        case actionType.SET_USER: {
-          
-            return { ...state,
-                user: action.payload  }
-        }
-
-        default: {
-            return { ...state }
-        }
+  switch (action.type) {
+    case actionType.SET_USER: {
+      return { ...state, user: action.payload };
     }
+
+    default: {
+      return { ...state };
+    }
+  }
 }

@@ -12,7 +12,7 @@ namespace Hotel.API.Models.Post
         public string Identity { get; set; }
         public DateTime DateOfBirth { get; set; }
         public TheGender Gender { get; set; }=new TheGender();
-        public List<WorkerRolePostModel> Roles { get; set; }
+        public List<WorkerRolePostModel> Roles { get; set; }=new List<WorkerRolePostModel>();
         public bool Status { get; set; }
     }
 }

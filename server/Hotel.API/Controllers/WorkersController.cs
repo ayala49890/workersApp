@@ -17,7 +17,7 @@ using System.Data;
 
 namespace Hotel.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("workers.co.il/[controller]")]
     [ApiController]
     public class WorkersController : ControllerBase
     {
@@ -45,8 +45,6 @@ namespace Hotel.API.Controllers
             var worker = await _workerService.GetWorkerAsync(id);
             if (worker == null)
                 return NotFound();
-            //var workerDto = _mapper.Map<WorkerDto>(worker);
-            //return Ok(workerDto);
             return Ok(worker);
 
         }

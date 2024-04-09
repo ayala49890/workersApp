@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getWorkers, deleteWorker } from "../service/serviceWorker";
-import React, { useRef } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import Header from "../header";
@@ -24,8 +23,8 @@ export default function AllWorkers() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [selectedWorkers, setSelectedWorkers] = useState([]);
-  const [filteredWorkers, setFilteredWorkers] = useState([]); // Define filteredWorkers here
-  const tableRef = useRef(null);
+  const [filteredWorkers, setFilteredWorkers] = useState([]);
+  dispatch({ type: "SET_SELECTED_WORKER", payload: null });
 
   useEffect(() => {
     dispatch(getWorkers());
@@ -116,16 +115,17 @@ export default function AllWorkers() {
     if (worker) {
       console.log("worker:", JSON.stringify(worker));
       dispatch({ type: "SET_SELECTED_WORKER", payload: worker });
-      navigate("/worker");
+      navigate("/editWorker");
     }
   };
 
-  const handleDeleteWorker = () => {
-    selectedWorkers.forEach((worker) => {
+  const handleDeleteWorker = (worker) => {
+    if (Array.isArray(workers)) {
       console.log("Delete worker:", worker);
       dispatch(deleteWorker(worker));
-    });
-    setSelectedWorkers([]);
+      const updatedWorkers = workers.filter((w) => w.id !== worker.id);
+      setFilteredWorkers(updatedWorkers);
+    }
   };
 
   const handleExportToExcel = () => {
@@ -194,12 +194,14 @@ export default function AllWorkers() {
   };
 
   useEffect(() => {
-    const filtered = workers.filter((worker) =>
-      Object.values(worker).some((value) =>
-        String(value).toLowerCase().includes(searchValue.toLowerCase())
-      )
-    );
-    setFilteredWorkers(filtered);
+    if (Array.isArray(workers)) {
+      const filtered = workers.filter((worker) =>
+        Object.values(worker).some((value) =>
+          String(value).toLowerCase().includes(searchValue.toLowerCase())
+        )
+      );
+      setFilteredWorkers(filtered);
+    }
   }, [searchValue, workers]);
 
   return (
@@ -219,7 +221,7 @@ export default function AllWorkers() {
             variant="contained"
             color="primary"
             onClick={() => {
-              navigate(`/worker`);
+              navigate(`/addWorker`);
             }}
             startIcon={<AddIcon />}
           >
@@ -297,10 +299,11 @@ export default function AllWorkers() {
           backgroundColor: "#1976d2",
           color: "white",
           padding: "10px 20px",
-          borderRadius: "4px",
+          borderRadius: "14px",
           textAlign: "center",
           cursor: "default",
           zIndex: 1000,
+          opacity: "90%",
         }}
       >
         {filteredWorkers.length} שורות מוצגות

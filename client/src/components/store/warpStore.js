@@ -7,6 +7,6 @@ const reducers = combineReducers({
   user: User,
   workers: Worker,
   roles: Role,
-  selectedWorker: Worker
+  selectedWorker: Worker,
 });
 export const store = createStore(reducers, applyMiddleware(thunk));

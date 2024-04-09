@@ -4,18 +4,29 @@ import Swal from "sweetalert2";
 export const getWorkers = () => {
   return (dispatch) => {
     axios
-      .get("https://localhost:7281/api/Workers")
+      .get("https://localhost:7281/workers.co.il/Workers")
       .then((res) => {
         dispatch({ type: "SET_WORKERS", payload: res.data });
       })
       .catch((error) => console.error(error));
   };
 };
+// export const getWorkerById = (worker) => {
+//   return (dispatch) => {
+//     axios
+//       .get(`https://localhost:7281/workers.co.il/Workers/${worker.id}`)
+//       .then((res) => {
+//         dispatch({ type: "SET_WORKER_ROLES", payload: res.data });
+//       })
+//       .catch((error) => console.error(error));
+//   };
+// };
+
 
 export const deleteWorker = (worker) => {
   return (dispatch) => {
     axios
-      .delete(`https://localhost:7281/api/Workers/${worker.id}`)
+      .delete(`https://localhost:7281/workers.co.il/Workers/${worker.id}`)
       .then(() => {
         dispatch({ type: "DELETE_WORKER", payload: worker.id });
         Swal.fire({
@@ -32,7 +43,7 @@ export const deleteWorker = (worker) => {
 export const addWorker = (worker) => {
   return (dispatch) => {
     axios
-      .post("https://localhost:7281/api/Workers", worker)
+      .post("https://localhost:7281/workers.co.il/Workers", worker)
       .then((res) => {
         dispatch({ type: "ADD_WORKER", payload: res.data });
         Swal.fire({
@@ -41,7 +52,7 @@ export const addWorker = (worker) => {
           title: "העובד נוסף בהצלחה",
         });
       })
-      .catch((err) => {
+      .catch(() => {
         Swal.fire({ icon: "error", position: "center", title: "שגיאת הוספה" });
       });
   };
@@ -50,7 +61,7 @@ export const addWorker = (worker) => {
 export const editWorker = (worker) => {
   return (dispatch) =>
     axios
-      .put(`https://localhost:7281/api/Workers/${worker.id}`, worker)
+      .put(`https://localhost:7281/workers.co.il/Workers/${worker.id}`, worker)
       .then((res) => {
         dispatch({ type: "EDIT_WORKER", payload: res.data });
         Swal.fire({
@@ -59,7 +70,7 @@ export const editWorker = (worker) => {
           title: "העובד עודכן בהצלחה",
         });
       })
-      .catch((error) => {
+      .catch(() => {
         Swal.fire({
           icon: "error",
           position: "center",

@@ -9,12 +9,12 @@
   align-items: center;
   justify-content: center;
   direction: rtl;
-margin-bottom: 5%;}
-.firstPage{
+  margin-bottom: 5%;
+}
+.firstPage {
   text-align: center;
 }
-.myLink{
+.myLink {
   font-size: 30px;
-color: midnightblue;
-
+  color: midnightblue;
 }
