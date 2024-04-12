@@ -23,6 +23,7 @@ namespace Hotel.Data.Repositories
         {
             return await _context.Workers
                                  .Where(w => w.Status)
+                                 .Include(w => w.Roles)
                                  .ToListAsync();
         }
         public async Task<Worker> GetWorkerByIdAsync(int id)

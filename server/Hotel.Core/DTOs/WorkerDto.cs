@@ -16,5 +16,7 @@ namespace Hotel.Core.DTOs
         public String LastName { get; set; }
         public DateTime StartWorkingDate { get; set; }
         public string Identity { get; set; }
+        public List<WorkerRole> Roles { get; set; }
+
     }
 }

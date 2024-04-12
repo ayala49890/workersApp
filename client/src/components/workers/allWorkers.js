@@ -54,7 +54,7 @@ export default function AllWorkers() {
 
     const columns = workerFields
       .map((field) => {
-        if (field === "id" || field === "מזהה") {
+        if (field === "id" || field === "מזהה"||field === "roles" || field === "תפקידים") {
           return null;
         }
 
@@ -106,6 +106,8 @@ export default function AllWorkers() {
         return field === "startWorkingDate" ? "תאריך תחילת העבודה" : field;
       case "id":
         return "מזהה";
+        case "roles":
+          return "תפקידים";
       default:
         return field;
     }
