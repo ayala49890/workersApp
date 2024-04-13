@@ -186,6 +186,16 @@ const AddWorker = () => {
       formIsValid = false;
     }
 
+    // Add validation for start working date being at least 16 years after the date of birth
+    const dob = new Date(formData.dateOfBirth);
+    const sixteenYearsLater = new Date(dob);
+    sixteenYearsLater.setFullYear(dob.getFullYear() + 16);
+
+    if (new Date(formData.startWorkingDate) < sixteenYearsLater) {
+      newErrors.startWorkingDate = true;
+      formIsValid = false;
+    }
+
     if (
       new Date(formData.startWorkingDate) < new Date(formData.dateOfBirth) ||
       rolesData.some(
@@ -314,6 +324,11 @@ const AddWorker = () => {
                   required
                   error={errors.startWorkingDate}
                 />
+                {errors.startWorkingDate && (
+                  <FormHelperText error>
+                    תאריך תחילת העבודה חייב להיות לפחות 16 שנים אחרי תאריך הלידה
+                  </FormHelperText>
+                )}
               </Grid>
               {rolesData.map((role, index) => (
                 <React.Fragment key={index}>
@@ -467,13 +482,3 @@ const AddWorker = () => {
 };
 
 export default AddWorker;
-
-
-
-
-
-
-
-
-
-
