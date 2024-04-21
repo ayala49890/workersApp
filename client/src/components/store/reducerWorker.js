@@ -3,15 +3,12 @@ import * as actionType from "./action";
 const initialState = {
   workers: [],
   selectedWorker: null,
-  // workerRoles: [],
 };
 
 export default function ReducerWorker(state = initialState, action) {
   switch (action.type) {
     case actionType.SET_WORKERS:
       return { ...state, workers: action.payload };
-    // case actionType.SET_WORKER_ROLES:
-    //   return { ...state, workerRoles: action.payload };
     case actionType.DELETE_WORKER:
       return { ...state, workers: action.payload };
     case actionType.ADD_WORKER: {

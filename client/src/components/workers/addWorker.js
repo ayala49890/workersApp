@@ -24,28 +24,42 @@ const GenderEnum = {
   Female: 2,
 };
 
-const isValidIsraeliID = (id) => {
-  if (typeof id !== "string") return false;
-  id = id.trim();
-  if (id.length !== 9 || isNaN(id)) return false;
-
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    let digit = parseInt(id.charAt(i));
-    if (i % 2 === 0) {
-      digit *= 1;
-    } else {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
-    }
-    sum += digit;
-  }
-  return sum % 10 === 0;
-};
-
 const AddWorker = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleCancel = () => {
+    setFormData({
+      firstName: "",
+      lastName: "",
+      identity: "",
+      dateOfBirth: "",
+      startWorkingDate: "",
+      gender: GenderEnum.Male,
+      roles: [{ roleId: "", entryDate: "" }],
+      status: true,
+    });
+    navigate("/workers");
+  };
+
+  const isValidIsraeliID = (id) => {
+    if (typeof id !== "string") return false;
+    id = id.trim();
+    if (id.length !== 9 || isNaN(id)) return false;
+
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      let digit = parseInt(id.charAt(i));
+      if (i % 2 === 0) {
+        digit *= 1;
+      } else {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+    }
+    return sum % 10 === 0;
+  };
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -54,11 +68,11 @@ const AddWorker = () => {
     dateOfBirth: "",
     startWorkingDate: "",
     gender: GenderEnum.Male,
+    roles: [{ roleId: "", entryDate: "" }],
     status: true,
   });
-  const [rolesData, setRolesData] = useState([{ roleId: "", entryDate: "" }]);
-  const [roleIsManager, setRoleIsManager] = useState([false]); // Initial role is not manager
-  const [addRoleEnabled, setAddRoleEnabled] = useState(false); // Enable add role button
+  const [roleIsManager, setRoleIsManager] = useState([false]);
+  const [addRoleEnabled, setAddRoleEnabled] = useState(false);
   const [errors, setErrors] = useState({
     firstName: false,
     lastName: false,
@@ -68,10 +82,10 @@ const AddWorker = () => {
     gender: false,
     roles: false,
     status: false,
+    duplicateRole: false,
   });
   const rolesList = useSelector((state) => state.roles.roles);
   const worker = useSelector((state) => state.workers.selectedWorker);
-  const [filteredRolesList, setFilteredRolesList] = useState([]); // Define filteredRolesList state
 
   useEffect(() => {
     dispatch(getRoles());
@@ -86,43 +100,42 @@ const AddWorker = () => {
           : "",
         gender: worker.gender || GenderEnum.Male,
         status: worker.status || true,
-      });
-      setRolesData(
-        worker.roles?.map((role) => ({
+        roles: worker.roles?.map((role) => ({
           ...role,
           entryDate: role.entryDate
             ? new Date(role.entryDate).toISOString().split("T")[0]
             : "",
-        })) || [{ roleId: "", entryDate: "" }] // Ensure at least one role
-      );
-      setRoleIsManager(
-        worker.roles?.map((role) => role.isManager) || [false] // Initial role is not manager
-      );
+        })) || [{ roleId: "", entryDate: "" }],
+      });
+      setRoleIsManager(worker.roles?.map((role) => role.isManager) || [false]);
     }
   }, [dispatch, worker]);
 
   useEffect(() => {
-    const enableButton = rolesData.some((role) => role.roleId && role.entryDate);
+    const enableButton = formData.roles.some(
+      (role) => role.roleId && role.entryDate
+    );
     setAddRoleEnabled(enableButton);
-  }, [rolesData]);
+  }, [formData.roles]);
 
-  useEffect(() => {
-    const updatedRolesList = rolesList.filter((role) => {
-      return !rolesData.some((existingRole) => existingRole.roleId === role.id);
-    });
-    setFilteredRolesList(updatedRolesList);
-  }, [rolesList, rolesData]);
-  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: false });
+    if (name === "startWorkingDate") {
+      const isValidStartWorkingDate = isValidStartDate(
+        value,
+        formData.dateOfBirth
+      );
+      setErrors({ ...errors, startWorkingDate: !isValidStartWorkingDate });
+    } else {
+      setErrors({ ...errors, [name]: false });
+    }
   };
 
   const handleRoleChange = (e, index) => {
-    const updatedRoles = [...rolesData];
+    const updatedRoles = [...formData.roles];
     updatedRoles[index] = { ...updatedRoles[index], roleId: e.target.value };
-    setRolesData(updatedRoles);
+    setFormData({ ...formData, roles: updatedRoles });
     setErrors({ ...errors, roles: false });
   };
 
@@ -132,26 +145,36 @@ const AddWorker = () => {
     setRoleIsManager(updatedRoleIsManager);
   };
 
+  const isValidStartDate = (startDate, dateOfBirth) => {
+    const minStartDate = new Date(dateOfBirth);
+    minStartDate.setFullYear(minStartDate.getFullYear() + 16);
+    return new Date(startDate) >= minStartDate;
+  };
+
   const handleAddRole = () => {
-    const updatedRoles = [{ roleId: "", entryDate: "" }, ...rolesData];
-    setRolesData(updatedRoles);
+    const updatedRoles = [{ roleId: "", entryDate: "" }, ...formData.roles];
+    setFormData({ ...formData, roles: updatedRoles });
     setRoleIsManager([false, ...roleIsManager]);
   };
 
   const handleRemoveRole = (index) => {
-    const updatedRoles = [...rolesData];
+    const updatedRoles = [...formData.roles];
     updatedRoles.splice(index, 1);
-    setRolesData(updatedRoles);
+    setFormData({ ...formData, roles: updatedRoles });
     const updatedRoleIsManager = [...roleIsManager];
     updatedRoleIsManager.splice(index, 1);
     setRoleIsManager(updatedRoleIsManager);
+    // Reset errors when a role is removed
+    const newErrors = { ...errors };
+    delete newErrors.duplicateRole;
+    setErrors(newErrors);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     let formIsValid = true;
-    const newErrors = { ...errors };
+    const newErrors = {};
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = true;
@@ -165,6 +188,7 @@ const AddWorker = () => {
       newErrors.identity = true;
       formIsValid = false;
     }
+
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = true;
       formIsValid = false;
@@ -173,11 +197,16 @@ const AddWorker = () => {
       newErrors.startWorkingDate = true;
       formIsValid = false;
     }
+    if (!isValidStartDate(formData.startWorkingDate, formData.dateOfBirth)) {
+      newErrors.startWorkingDate = true;
+      formIsValid = false;
+    }
+
     if (!formData.gender) {
       newErrors.gender = true;
       formIsValid = false;
     }
-    if (rolesData.length === 0) {
+    if (formData.roles.length === 0) {
       newErrors.roles = true;
       formIsValid = false;
     }
@@ -186,19 +215,22 @@ const AddWorker = () => {
       formIsValid = false;
     }
 
-    // Add validation for start working date being at least 16 years after the date of birth
-    const dob = new Date(formData.dateOfBirth);
-    const sixteenYearsLater = new Date(dob);
-    sixteenYearsLater.setFullYear(dob.getFullYear() + 16);
-
-    if (new Date(formData.startWorkingDate) < sixteenYearsLater) {
-      newErrors.startWorkingDate = true;
+    const roleCounts = {};
+    formData.roles.forEach((role) => {
+      if (role.roleId in roleCounts) {
+        roleCounts[role.roleId]++;
+      } else {
+        roleCounts[role.roleId] = 1;
+      }
+    });
+    if (Object.values(roleCounts).some((count) => count > 1)) {
+      newErrors.duplicateRole = true;
       formIsValid = false;
     }
 
     if (
       new Date(formData.startWorkingDate) < new Date(formData.dateOfBirth) ||
-      rolesData.some(
+      formData.roles.some(
         (role) =>
           !role.entryDate ||
           new Date(role.entryDate) < new Date(formData.startWorkingDate)
@@ -212,9 +244,12 @@ const AddWorker = () => {
       return;
     }
 
+    // Reset errors when form is valid
+    setErrors({});
+
     const workerToSend = {
       ...formData,
-      roles: rolesData?.map((role, index) => ({
+      roles: formData.roles.map((role, index) => ({
         roleId: role.roleId,
         entryDate: role.entryDate ? new Date(role.entryDate) : new Date(),
         workerId: formData.workerId,
@@ -225,9 +260,9 @@ const AddWorker = () => {
         : new Date(),
     };
     if (!worker) {
-      await dispatch(addWorker(workerToSend));
+      dispatch(addWorker(workerToSend));
     } else {
-      await dispatch(editWorker(workerToSend));
+      dispatch(editWorker(workerToSend));
     }
     navigate("/workers");
   };
@@ -235,243 +270,285 @@ const AddWorker = () => {
   return (
     <>
       <Header />
-      <Grid container justifyContent="center" style={{ marginTop: "100px" }}>
+      <div
+        style={{
+          position: "sticky",
+          top: "50%",
+          transform: "translateY(50%)",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleCancel}
+          style={{
+            borderRadius: "30px",
+            marginTop: "20px",
+            background: "#ff4f4f",
+            color: "white",
+            fontWeight: "bold",
+            boxShadow: "none",
+            "&:hover": { background: "#ff0000" },
+          }}
+        >
+          ביטול
+        </Button>
+      </div>
+      <Grid container justifyContent="center" style={{ marginTop: "10px" }}>
         <Grid item xs={12} md={6}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id="firstName"
-                  name="firstName"
-                  label="שם פרטי"
-                  fullWidth
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                  error={errors.firstName}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id="lastName"
-                  name="lastName"
-                  label="שם משפחה"
-                  fullWidth
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                  error={errors.lastName}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id="identity"
-                  name="identity"
-                  label="מספר תעודת זהות"
-                  fullWidth
-                  value={formData.identity}
-                  onChange={handleInputChange}
-                  required
-                  error={errors.identity}
-                />
-                {errors.identity && (
-                  <FormHelperText error>
-                    יש להזין מספר תעודת זהות ישראלי תקין
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  label="תאריך לידה"
-                  type="date"
-                  fullWidth
-                  value={formData.dateOfBirth}
-                  onChange={handleInputChange}
-                  required
-                  error={errors.dateOfBirth}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth error={errors.gender}>
-                  <InputLabel id="gender-label">מגדר</InputLabel>
-                  <Select
-                    labelId="gender-label"
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="firstName"
+                    name="firstName"
+                    label="שם פרטי"
+                    fullWidth
+                    value={formData.firstName || ""}
                     onChange={handleInputChange}
                     required
-                  >
-                    <MenuItem value={GenderEnum.Male}>זכר</MenuItem>
-                    <MenuItem value={GenderEnum.Female}>נקבה</MenuItem>
-                  </Select>
-                  {errors.gender && (
-                    <FormHelperText>יש לבחור מגדר</FormHelperText>
+                    error={errors.firstName}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="lastName"
+                    name="lastName"
+                    label="שם משפחה"
+                    fullWidth
+                    value={formData.lastName || ""}
+                    onChange={handleInputChange}
+                    required
+                    error={errors.lastName}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="identity"
+                    name="identity"
+                    label="מספר תעודת זהות"
+                    fullWidth
+                    value={formData.identity || ""}
+                    onChange={handleInputChange}
+                    required
+                    error={errors.identity}
+                  />
+                  {errors.identity && (
+                    <FormHelperText error>
+                      יש להזין מספר תעודת זהות ישראלי תקין
+                    </FormHelperText>
                   )}
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  id="startWorkingDate"
-                  name="startWorkingDate"
-                  label="תאריך תחילת עבודה"
-                  type="date"
-                  fullWidth
-                  value={formData.startWorkingDate}
-                  onChange={handleInputChange}
-                  required
-                  error={errors.startWorkingDate}
-                />
-                {errors.startWorkingDate && (
-                  <FormHelperText error>
-                    תאריך תחילת העבודה חייב להיות לפחות 16 שנים אחרי תאריך הלידה
-                  </FormHelperText>
-                )}
-              </Grid>
-              {rolesData.map((role, index) => (
-                <React.Fragment key={index}>
-                  <Grid item xs={12} sm={5}>
-                    <FormControl fullWidth error={errors.roles}>
-                      <InputLabel id={`role-label-${index + 1}`}>
-                        תפקיד
-                      </InputLabel>
-                      <Select
-                        labelId={`role-label-${index + 1}`}
-                        id={`role-${index + 1}`}
-                        value={role.roleId}
-                        onChange={(e) => handleRoleChange(e, index)}
-                        required
-                      >
-                        {filteredRolesList
-                          .filter(
-                            (roleOption) =>
-                              (roleIsManager[index] &&
-                                roleOption.isAdministrative) ||
-                              !roleIsManager[index]
-                          )
-                          .map((roleOption) => (
-                            <MenuItem key={roleOption.id} value={roleOption.id}>
-                              {roleOption.name}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={5}>
-                    <TextField
-                      id={`entryDate-${index + 1}`}
-                      name={`entryDate-${index + 1}`}
-                      label={`תאריך תחילת תפקיד`}
-                      type="date"
-                      fullWidth
-                      value={role.entryDate}
-                      onChange={(e) => {
-                        const updatedRoles = [...rolesData];
-                        updatedRoles[index].entryDate = e.target.value;
-                        setRolesData(updatedRoles);
-                      }}
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    label="תאריך לידה"
+                    type="date"
+                    fullWidth
+                    value={formData.dateOfBirth || ""}
+                    onChange={handleInputChange}
+                    required
+                    error={errors.dateOfBirth}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={errors.gender}>
+                    <InputLabel id="gender-label">מגדר</InputLabel>
+                    <Select
+                      labelId="gender-label"
+                      id="gender"
+                      name="gender"
+                      value={formData.gender || GenderEnum.Male}
+                      onChange={handleInputChange}
                       required
-                      error={
-                        role.entryDate &&
-                        new Date(role.entryDate) >
-                          new Date(formData.startWorkingDate)
-                      }
-                    />
-                    {role.entryDate &&
-                      new Date(role.entryDate) <
-                        new Date(formData.startWorkingDate) && (
-                        <FormHelperText error>
-                          תאריך תחילת התפקיד חייב להיות אחרי או שווה לתאריך
-                          תחילת העבודה
-                        </FormHelperText>
-                      )}
-                  </Grid>
-                  <Grid item xs={12} sm={1}>
-                    <FormControl>
-                      <Checkbox
-                        id={`manager-checkbox-${index + 1}`}
-                        name={`manager-checkbox-${index + 1}`}
-                        checked={roleIsManager[index]}
-                        onChange={(e) => handleManagerCheckboxChange(e, index)}
-                      />
-                      <FormHelperText>תפקיד ניהולי</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                  {index >= 0 && (
-                    <Grid item xs={12} sm={1}>
-                      <Tooltip title="לחץ להסרה">
-                        <span>
-                          <IconButton
-                            aria-label="remove-role"
-                            onClick={() => handleRemoveRole(index)}
-                            disabled={rolesData.length === 1}
-                            style={{
-                              border: "1px solid blue",
-                              borderRadius: "50%",
-                            }}
-                          >
-                            <RemoveIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </Grid>
-                  )}
-                </React.Fragment>
-              ))}
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  onClick={handleAddRole}
-                  disabled={!addRoleEnabled}
-                >
-                  הוסף תפקיד
-                </Button>
-                {errors.roles && (
-                  <FormHelperText error>
-                    יש להוסיף לפחות תפקיד אחד
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth error={errors.status}>
-                  <InputLabel id="status-label">סטטוס</InputLabel>
-                  <Select
-                    labelId="status-label"
-                    id="status"
-                    name="status"
-                    value={formData.status}
+                    >
+                      <MenuItem value={GenderEnum.Male}>זכר</MenuItem>
+                      <MenuItem value={GenderEnum.Female}>נקבה</MenuItem>
+                    </Select>
+                    {errors.gender && (
+                      <FormHelperText>יש לבחור מגדר</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="startWorkingDate"
+                    name="startWorkingDate"
+                    label="תאריך תחילת עבודה"
+                    type="date"
+                    fullWidth
+                    value={formData.startWorkingDate || ""}
                     onChange={handleInputChange}
                     required
+                    error={errors.startWorkingDate}
+                  />
+                  <FormHelperText error>
+                    {errors.startWorkingDate &&
+                      "תאריך תחילת העבודה חייב להיות לפחות 16 שנים אחרי תאריך הלידה"}
+                  </FormHelperText>
+                </Grid>
+                {formData.roles.map((role, index) => (
+                  <React.Fragment key={index}>
+                    <Grid item xs={12} sm={5}>
+                      <FormControl
+                        fullWidth
+                        error={errors.roles || errors.duplicateRole}
+                      >
+                        <InputLabel id={`role-label-${index + 1}`}>
+                          תפקיד
+                        </InputLabel>
+                        <Select
+                          labelId={`role-label-${index + 1}`}
+                          id={`role-${index + 1}`}
+                          value={role.roleId || ""}
+                          onChange={(e) => handleRoleChange(e, index)}
+                          required
+                        >
+                          {rolesList
+                            .filter(
+                              (roleOption) =>
+                                (roleIsManager[index] &&
+                                  roleOption.isAdministrative) ||
+                                !roleIsManager[index]
+                            )
+                            .map((roleOption) => (
+                              <MenuItem
+                                key={roleOption.id}
+                                value={roleOption.id}
+                              >
+                                {roleOption.name}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                        {(errors.roles || errors.duplicateRole) && (
+                          <FormHelperText error>
+                            {errors.duplicateRole
+                              ? "לא ניתן להוסיף תפקיד זהה יותר מפעם אחת"
+                              : "יש לבחור תפקיד"}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={5}>
+                      <TextField
+                        id={`entryDate-${index + 1}`}
+                        name={`entryDate-${index + 1}`}
+                        label={`תאריך תחילת תפקיד`}
+                        type="date"
+                        fullWidth
+                        value={role.entryDate || ""}
+                        onChange={(e) => {
+                          const updatedRoles = [...formData.roles];
+                          updatedRoles[index].entryDate = e.target.value;
+                          setFormData({ ...formData, roles: updatedRoles });
+                        }}
+                        required
+                        error={
+                          role.entryDate &&
+                          new Date(role.entryDate) >
+                            new Date(formData.startWorkingDate)
+                        }
+                      />
+                      {role.entryDate &&
+                        new Date(role.entryDate) <
+                          new Date(formData.startWorkingDate) && (
+                          <FormHelperText error>
+                            תאריך תחילת התפקיד חייב להיות אחרי או שווה לתאריך
+                            תחילת העבודה
+                          </FormHelperText>
+                        )}
+                    </Grid>
+                    <Grid item xs={12} sm={1}>
+                      <FormControl>
+                        <Checkbox
+                          id={`manager-checkbox-${index + 1}`}
+                          name={`manager-checkbox-${index + 1}`}
+                          checked={roleIsManager[index]}
+                          onChange={(e) =>
+                            handleManagerCheckboxChange(e, index)
+                          }
+                        />
+                        <FormHelperText>תפקיד ניהולי</FormHelperText>
+                      </FormControl>
+                    </Grid>
+                    {index >= 0 && (
+                      <Grid item xs={12} sm={1}>
+                        <Tooltip title="לחץ להסרה">
+                          <span>
+                            <IconButton
+                              aria-label="remove-role"
+                              onClick={() => handleRemoveRole(index)}
+                              disabled={formData.roles.length === 1}
+                              style={{
+                                border: "1px solid blue",
+                                borderRadius: "50%",
+                              }}
+                            >
+                              <RemoveIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Grid>
+                    )}
+                  </React.Fragment>
+                ))}
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    onClick={handleAddRole}
+                    disabled={!addRoleEnabled}
                   >
-                    <MenuItem value="true">פעיל</MenuItem>
-                    <MenuItem value="false">לא פעיל</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  disabled={
-                    !formData.dateOfBirth ||
-                    !formData.firstName ||
-                    !formData.gender ||
-                    !formData.identity ||
-                    !formData.lastName ||
-                    !rolesData ||
-                    !formData.startWorkingDate ||
-                    !formData.status ||
-                    rolesData.some((role) => !role.roleId || !role.entryDate)
-                  }
-                >
-                  שלח
-                </Button>
+                    הוסף תפקיד
+                  </Button>
+                  {errors.roles && (
+                    <FormHelperText error>
+                      יש להוסיף לפחות תפקיד אחד
+                    </FormHelperText>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth error={errors.status}>
+                    <InputLabel id="status-label">סטטוס</InputLabel>
+                    <Select
+                      labelId="status-label"
+                      id="status"
+                      name="status"
+                      value={formData.status || ""}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <MenuItem value="true">פעיל</MenuItem>
+                      <MenuItem value="false">לא פעיל</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    disabled={
+                      !formData.dateOfBirth ||
+                      !formData.firstName ||
+                      !formData.gender ||
+                      !formData.identity ||
+                      !formData.lastName ||
+                      !formData.roles ||
+                      !formData.startWorkingDate ||
+                      !formData.status ||
+                      formData.roles.some(
+                        (role) => !role.roleId || !role.entryDate
+                      )
+                    }
+                  >
+                    {worker ? "עדכן עובד" : "הוסף עובד"}
+                  </Button>
+                </Grid>
               </Grid>
             </Grid>
           </form>

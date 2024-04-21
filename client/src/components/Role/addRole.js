@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addRole } from "../service/serviceRole";
 import {
@@ -9,6 +9,7 @@ import {
   Container,
   Typography,
   Snackbar,
+  Grid,
 } from "@mui/material";
 import Header from "../header";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +23,9 @@ export default function AddRole() {
   const rolesList = useSelector((state) => state.roles.roles);
   const navigate = useNavigate();
 
-  dispatch({ type: "SET_SELECTED_WORKER", payload: null });
+  useEffect(() => {
+    dispatch({ type: "SET_SELECTED_WORKER", payload: null });
+  }, [dispatch]);
 
   const handleNameChange = (event) => {
     setName(event.target.value);
@@ -37,11 +40,15 @@ export default function AddRole() {
     setError("");
     const trimmedName = name.trim();
 
-    const existingRole = rolesList.find((role) => role.name === trimmedName);
-    if (existingRole && existingRole.isAdministrative == isAdministrative) {
-      setError("תפקיד זה כבר קיים עם אותו ערך ניהולי ");
-      setOpenSnackbar(true);
-      return;
+    if (Array.isArray(rolesList)) {
+      const existingRole = rolesList.find(
+        (role) => role.name === trimmedName
+      );
+      if (existingRole && existingRole.isAdministrative === isAdministrative) {
+        setError("תפקיד זה כבר קיים עם אותו ערך ניהולי ");
+        setOpenSnackbar(true);
+        return;
+      }
     }
 
     if (trimmedName !== "") {
@@ -58,6 +65,10 @@ export default function AddRole() {
     setOpenSnackbar(false);
   };
 
+  const handleCancel = () => {
+    navigate(`/roles`);
+  };
+
   return (
     <>
       <Header />
@@ -66,34 +77,51 @@ export default function AddRole() {
           הוספת תפקיד חדש
         </Typography>
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="שם התפקיד"
-            variant="outlined"
-            fullWidth
-            value={name}
-            onChange={handleNameChange}
-            error={error !== ""}
-            helperText={error}
-            margin="normal"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isAdministrative}
-                onChange={handleIsAdministrativeChange}
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="שם התפקיד"
+                variant="outlined"
+                fullWidth
+                value={name}
+                onChange={handleNameChange}
+                error={error !== ""}
+                helperText={error}
               />
-            }
-            label="ניהולי?"
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            disabled={name.trim() === ""}
-          >
-            הוסף תפקיד
-          </Button>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isAdministrative}
+                    onChange={handleIsAdministrativeChange}
+                  />
+                }
+                label="ניהולי?"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={name.trim() === ""}
+              >
+                הוסף תפקיד
+              </Button>
+            </Grid>
+            <Grid item xs={6}>
+              <Button
+                variant="contained"
+                color="secondary"
+                fullWidth
+                onClick={handleCancel}
+              >
+                ביטול
+              </Button>
+            </Grid>
+          </Grid>
         </form>
         <Snackbar
           open={openSnackbar}

@@ -11,16 +11,7 @@ export const getWorkers = () => {
       .catch((error) => console.error(error));
   };
 };
-// export const getWorkerById = (worker) => {
-//   return (dispatch) => {
-//     axios
-//       .get(`https://localhost:7281/workers.co.il/Workers/${worker.id}`)
-//       .then((res) => {
-//         dispatch({ type: "SET_WORKER_ROLES", payload: res.data });
-//       })
-//       .catch((error) => console.error(error));
-//   };
-// };
+
 
 
 export const deleteWorker = (worker) => {
